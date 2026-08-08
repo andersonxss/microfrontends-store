@@ -13,6 +13,5 @@ export default createModuleFederationConfig({
     "react/": { singleton: true },
     "react-dom": { singleton: true },
     "react-dom/": { singleton: true },
-    "@mfe/shared": { singleton: true },
   },
 });
