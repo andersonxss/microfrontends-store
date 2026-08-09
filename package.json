@@ -12,9 +12,16 @@
     "dev:shell": "npm run dev --workspace @mfe/shell",
     "dev:products": "npm run dev --workspace @mfe/products",
     "dev:cart": "npm run dev --workspace @mfe/cart",
+    "lint": "npm run lint:shell && npm run lint:products && npm run lint:cart && npm run lint:shared && npm run lint:scripts",
+    "lint:fix": "npm run lint:shell -- --fix && npm run lint:products -- --fix && npm run lint:cart -- --fix && npm run lint:shared -- --fix && npm run lint:scripts -- --fix",
+    "lint:shell": "node node_modules/eslint/bin/eslint.js \"apps/shell/**/*.{ts,tsx}\"",
+    "lint:products": "node node_modules/eslint/bin/eslint.js \"apps/products/**/*.{ts,tsx}\"",
+    "lint:cart": "node node_modules/eslint/bin/eslint.js \"apps/cart/**/*.{ts,tsx}\"",
+    "lint:shared": "node node_modules/eslint/bin/eslint.js \"packages/shared/src/**/*.{ts,tsx}\"",
+    "lint:scripts": "node node_modules/eslint/bin/eslint.js \"scripts/**/*.mjs\"",
     "build": "npm run build --workspaces",
     "typecheck": "npm run typecheck --workspaces",
-    "check": "npm run typecheck && npm run build"
+    "check": "npm run lint && npm run typecheck && npm run build"
   },
   "dependencies": {
     "@module-federation/vite": "^1.19.1",
@@ -25,8 +32,13 @@
     "vite": "^7.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0"
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^16.4.0",
+    "typescript-eslint": "^8.64.0"
   }
 }
