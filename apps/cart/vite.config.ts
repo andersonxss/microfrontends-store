@@ -1,30 +1,43 @@
 import { federation } from "@module-federation/vite";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath, URL } from "node:url";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
+import { getRemoteConfig } from "../../config/microfrontend-env";
 import mfConfig from "./module-federation.config";
 
-export default defineConfig({
-  base: "http://localhost:4202/",
-  resolve: {
-    alias: [
-      {
-        find: "@mfe/shared/styles.css",
-        replacement: fileURLToPath(new URL("../../packages/shared/src/styles.css", import.meta.url)),
-      },
-      {
-        find: "@mfe/shared",
-        replacement: fileURLToPath(new URL("../../packages/shared/src/index.ts", import.meta.url)),
-      },
-    ],
-  },
-  server: {
-    origin: "http://localhost:4202",
-    port: 4202,
-    strictPort: true,
-  },
-  plugins: [react(), federation(mfConfig)],
-  build: {
-    target: "chrome89",
-  },
+const workspaceRoot = fileURLToPath(new URL("../..", import.meta.url));
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, workspaceRoot, "");
+  const cart = getRemoteConfig(env, "cart");
+
+  return {
+    base: `${cart.origin}/`,
+    resolve: {
+      alias: [
+        {
+          find: "@mfe/shared/styles.css",
+          replacement: fileURLToPath(
+            new URL("../../packages/shared/src/styles.css", import.meta.url),
+          ),
+        },
+        {
+          find: "@mfe/shared",
+          replacement: fileURLToPath(
+            new URL("../../packages/shared/src/index.ts", import.meta.url),
+          ),
+        },
+      ],
+    },
+    server: {
+      origin: cart.origin,
+      port: cart.port,
+      preTransformRequests: false,
+      strictPort: true,
+    },
+    plugins: [react(), federation(mfConfig)],
+    build: {
+      target: "chrome89",
+    },
+  };
 });
