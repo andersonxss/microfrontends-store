@@ -45,7 +45,9 @@ jobs:
     environment:
       name: ${{ github.ref_name }}
     env:
-      VITE_APP_ENV: ${{ vars.VITE_APP_ENV }}
+      VITE_SHELL_REMOTE_URL: ${{ vars.VITE_SHELL_REMOTE_URL }}
+      VITE_PRODUCTS_REMOTE_URL: ${{ vars.VITE_PRODUCTS_REMOTE_URL }}
+      VITE_CART_REMOTE_URL: ${{ vars.VITE_CART_REMOTE_URL }}
 
     steps:
       - name: Checkout repository
@@ -62,12 +64,21 @@ jobs:
 
       - name: Validate environment variables
         run: |
-          if [ -z "$VITE_APP_ENV" ]; then
-            echo "VITE_APP_ENV is required for the ${{ github.ref_name }} environment."
+          if [ -z "$VITE_SHELL_REMOTE_URL" ]; then
+            echo "VITE_SHELL_REMOTE_URL is required for the ${{ github.ref_name }} environment."
             exit 1
           fi
 
-          echo "Building for environment: $VITE_APP_ENV"
+          echo "Building for environment: $VITE_SHELL_REMOTE_URL"
+          if [ -z "$VITE_PRODUCTS_REMOTE_URL" ]; then
+            echo "VITE_PRODUCTS_REMOTE_URL is required for the ${{ github.ref_name }} environment."
+            exit 1
+          fi
+
+          if [ -z "$VITE_CART_REMOTE_URL" ]; then
+            echo "VITE_CART_REMOTE_URL is required for the ${{ github.ref_name }} environment."
+            exit 1
+          fi
 
       - name: Build application
         run: npm run build
