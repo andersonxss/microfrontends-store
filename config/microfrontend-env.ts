@@ -13,17 +13,19 @@ export function getRemoteConfig(
   name: MicrofrontendName,
 ) {
   const prefix = name.toUpperCase();
+  const configuredUrl = env[`VITE_${prefix}_REMOTE_URL`];
+  const configuredPort = env[`VITE_${prefix}_REMOTE_PORT`];
   const url = normalizeRemoteUrl(
-    env[`VITE_${prefix}_REMOTE_URL`] ?? "http://localhost",
+    configuredUrl ?? "http://localhost",
   );
   const port = parseRemotePort(
-    env[`VITE_${prefix}_REMOTE_PORT`],
+    configuredPort,
     defaultPorts[name],
     `VITE_${prefix}_REMOTE_PORT`,
   );
 
   return {
-    origin: `${url}:${port}`,
+    origin: configuredUrl && !configuredPort ? url : `${url}:${port}`,
     port,
   };
 }
