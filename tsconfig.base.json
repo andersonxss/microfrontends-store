@@ -16,10 +16,9 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": ".",
     "paths": {
-      "@mfe/shared": ["packages/shared/src/index.ts"],
-      "@mfe/shared/styles.css": ["packages/shared/src/styles.css"]
+      "@mfe/shared": ["./packages/shared/src/index.ts"],
+      "@mfe/shared/styles.css": ["./packages/shared/src/styles.css"]
     }
   }
 }

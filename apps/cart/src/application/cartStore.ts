@@ -11,20 +11,24 @@ let cart: Cart = {
   items: [],
 };
 
+let snapshot: CartSnapshot = toCartSnapshot(cart);
+
 const listeners = new Set<() => void>();
 
 export function addProductToCart(product: ProductSummary) {
   cart = addProduct(cart, product);
+  snapshot = toCartSnapshot(cart);
   notify();
 }
 
 export function removeProductFromCart(productId: string) {
   cart = removeProduct(cart, productId);
+  snapshot = toCartSnapshot(cart);
   notify();
 }
 
 export function getCartSnapshot(): CartSnapshot {
-  return toCartSnapshot(cart);
+  return snapshot;
 }
 
 export function subscribeToCart(listener: () => void) {
