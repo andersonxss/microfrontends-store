@@ -30,6 +30,9 @@ export function App() {
           <NavLink href="#/cart" route="/cart" currentRoute={route}>
             Carrinho
           </NavLink>
+          <NavLink href="#/cart" route="/cart" currentRoute={route}>
+            Compras
+          </NavLink>
         </nav>
         <div className="session">
           <span>
