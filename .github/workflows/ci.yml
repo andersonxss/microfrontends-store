@@ -37,14 +37,23 @@ jobs:
       - name: Run checks
         run: npm run check
 
-  environment-build:
-    name: Build ${{ github.ref_name }} environment
+  deploy-remotes:
+    name: Deploy ${{ matrix.app }} to Vercel
     runs-on: ubuntu-latest
     needs: check
     if: github.event_name == 'push' && contains(fromJSON('["dev", "staging", "production"]'), github.ref_name)
     environment:
       name: ${{ github.ref_name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        app:
+          - products
+          - cart
     env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ matrix.app == 'products' && secrets.VERCEL_PRODUCTS_PROJECT_ID || secrets.VERCEL_CART_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VITE_SHELL_REMOTE_URL: ${{ vars.VITE_SHELL_REMOTE_URL }}
       VITE_PRODUCTS_REMOTE_URL: ${{ vars.VITE_PRODUCTS_REMOTE_URL }}
       VITE_CART_REMOTE_URL: ${{ vars.VITE_CART_REMOTE_URL }}
@@ -57,28 +66,148 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Validate environment variables
+      - name: Setup deployment target
         run: |
-          if [ -z "$VITE_SHELL_REMOTE_URL" ]; then
-            echo "VITE_SHELL_REMOTE_URL is required for the ${{ github.ref_name }} environment."
+          if [ "${{ github.ref_name }}" = "production" ]; then
+            echo "VERCEL_ENVIRONMENT=production" >> "$GITHUB_ENV"
+            echo "VERCEL_DEPLOY_ARGS=--prod" >> "$GITHUB_ENV"
+          else
+            echo "VERCEL_ENVIRONMENT=preview" >> "$GITHUB_ENV"
+            echo "VERCEL_DEPLOY_ARGS=" >> "$GITHUB_ENV"
+          fi
+
+      - name: Validate Vercel configuration
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "VERCEL_TOKEN secret is required."
             exit 1
           fi
 
-          echo "Building for environment: $VITE_SHELL_REMOTE_URL"
+          if [ -z "$VERCEL_ORG_ID" ]; then
+            echo "VERCEL_ORG_ID secret is required."
+            exit 1
+          fi
+
+          if [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "VERCEL project ID secret is required for ${{ matrix.app }}."
+            exit 1
+          fi
+
+          if [ "${{ matrix.app }}" = "products" ] && [ -z "$VITE_PRODUCTS_REMOTE_URL" ]; then
+            echo "VITE_PRODUCTS_REMOTE_URL variable is required."
+            exit 1
+          fi
+
+          if [ "${{ matrix.app }}" = "cart" ] && [ -z "$VITE_CART_REMOTE_URL" ]; then
+            echo "VITE_CART_REMOTE_URL variable is required."
+            exit 1
+          fi
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel environment
+        working-directory: apps/${{ matrix.app }}
+        run: vercel pull --yes --environment="$VERCEL_ENVIRONMENT" --token="$VERCEL_TOKEN"
+
+      - name: Build Vercel project
+        working-directory: apps/${{ matrix.app }}
+        run: vercel build $VERCEL_DEPLOY_ARGS --token="$VERCEL_TOKEN"
+
+      - name: Deploy Vercel project
+        id: deploy
+        working-directory: apps/${{ matrix.app }}
+        run: |
+          deployment_url=$(vercel deploy --prebuilt $VERCEL_DEPLOY_ARGS --token="$VERCEL_TOKEN")
+          echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
+          echo "### ${{ matrix.app }} deployment" >> "$GITHUB_STEP_SUMMARY"
+          echo "$deployment_url" >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-shell:
+    name: Deploy shell to Vercel
+    runs-on: ubuntu-latest
+    needs:
+      - check
+      - deploy-remotes
+    if: github.event_name == 'push' && contains(fromJSON('["dev", "staging", "production"]'), github.ref_name)
+    environment:
+      name: ${{ github.ref_name }}
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_SHELL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VITE_SHELL_REMOTE_URL: ${{ vars.VITE_SHELL_REMOTE_URL }}
+      VITE_PRODUCTS_REMOTE_URL: ${{ vars.VITE_PRODUCTS_REMOTE_URL }}
+      VITE_CART_REMOTE_URL: ${{ vars.VITE_CART_REMOTE_URL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup deployment target
+        run: |
+          if [ "${{ github.ref_name }}" = "production" ]; then
+            echo "VERCEL_ENVIRONMENT=production" >> "$GITHUB_ENV"
+            echo "VERCEL_DEPLOY_ARGS=--prod" >> "$GITHUB_ENV"
+          else
+            echo "VERCEL_ENVIRONMENT=preview" >> "$GITHUB_ENV"
+            echo "VERCEL_DEPLOY_ARGS=" >> "$GITHUB_ENV"
+          fi
+
+      - name: Validate Vercel configuration
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "VERCEL_TOKEN secret is required."
+            exit 1
+          fi
+
+          if [ -z "$VERCEL_ORG_ID" ]; then
+            echo "VERCEL_ORG_ID secret is required."
+            exit 1
+          fi
+
+          if [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "VERCEL_SHELL_PROJECT_ID secret is required."
+            exit 1
+          fi
+
+          if [ -z "$VITE_SHELL_REMOTE_URL" ]; then
+            echo "VITE_SHELL_REMOTE_URL variable is required."
+            exit 1
+          fi
+
           if [ -z "$VITE_PRODUCTS_REMOTE_URL" ]; then
-            echo "VITE_PRODUCTS_REMOTE_URL is required for the ${{ github.ref_name }} environment."
+            echo "VITE_PRODUCTS_REMOTE_URL variable is required."
             exit 1
           fi
 
           if [ -z "$VITE_CART_REMOTE_URL" ]; then
-            echo "VITE_CART_REMOTE_URL is required for the ${{ github.ref_name }} environment."
+            echo "VITE_CART_REMOTE_URL variable is required."
             exit 1
           fi
 
-      - name: Build application
-        run: npm run build
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel environment
+        working-directory: apps/shell
+        run: vercel pull --yes --environment="$VERCEL_ENVIRONMENT" --token="$VERCEL_TOKEN"
+
+      - name: Build Vercel project
+        working-directory: apps/shell
+        run: vercel build $VERCEL_DEPLOY_ARGS --token="$VERCEL_TOKEN"
+
+      - name: Deploy Vercel project
+        id: deploy
+        working-directory: apps/shell
+        run: |
+          deployment_url=$(vercel deploy --prebuilt $VERCEL_DEPLOY_ARGS --token="$VERCEL_TOKEN")
+          echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
+          echo "### shell deployment" >> "$GITHUB_STEP_SUMMARY"
+          echo "$deployment_url" >> "$GITHUB_STEP_SUMMARY"
