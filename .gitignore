@@ -11,3 +11,5 @@ npm-cache/
 .vercel/
 apps/*/.vercel/
 .env*
+
+.env*
