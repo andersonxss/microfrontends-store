@@ -107,16 +107,9 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Create Vercel project config
+      - name: Clear local Vercel config
         working-directory: apps/${{ matrix.app }}
-        run: |
-          mkdir -p .vercel
-          cat > .vercel/project.json <<EOF
-          {
-            "orgId": "$VERCEL_ORG_ID",
-            "projectId": "$VERCEL_PROJECT_ID"
-          }
-          EOF
+        run: rm -rf .vercel
 
       - name: Pull Vercel environment
         working-directory: apps/${{ matrix.app }}
@@ -206,16 +199,9 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
-      - name: Create Vercel project config
+      - name: Clear local Vercel config
         working-directory: apps/shell
-        run: |
-          mkdir -p .vercel
-          cat > .vercel/project.json <<EOF
-          {
-            "orgId": "$VERCEL_ORG_ID",
-            "projectId": "$VERCEL_PROJECT_ID"
-          }
-          EOF
+        run: rm -rf .vercel
 
       - name: Pull Vercel environment
         working-directory: apps/shell
