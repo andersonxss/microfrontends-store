@@ -127,6 +127,20 @@ jobs:
       - name: Build app
         run: npm run build --workspace @mfe/${{ matrix.app }}
 
+      - name: Verify Vercel project access
+        run: |
+          status_code=$(curl --silent --show-error --output /tmp/vercel-project.json --write-out "%{http_code}" \
+            --header "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID?teamId=$VERCEL_ORG_ID")
+
+          echo "Vercel project access status: $status_code"
+
+          if [ "$status_code" != "200" ]; then
+            echo "The Vercel token, org ID, and project ID do not match a project that this workflow can access."
+            cat /tmp/vercel-project.json
+            exit 1
+          fi
+
       - name: Deploy Vercel project
         id: deploy
         run: |
@@ -225,6 +239,20 @@ jobs:
 
       - name: Build app
         run: npm run build --workspace @mfe/shell
+
+      - name: Verify Vercel project access
+        run: |
+          status_code=$(curl --silent --show-error --output /tmp/vercel-project.json --write-out "%{http_code}" \
+            --header "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID?teamId=$VERCEL_ORG_ID")
+
+          echo "Vercel project access status: $status_code"
+
+          if [ "$status_code" != "200" ]; then
+            echo "The Vercel token, org ID, and project ID do not match a project that this workflow can access."
+            cat /tmp/vercel-project.json
+            exit 1
+          fi
 
       - name: Deploy Vercel project
         id: deploy
