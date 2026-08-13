@@ -108,8 +108,7 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Clear local Vercel config
-        working-directory: apps/${{ matrix.app }}
-        run: rm -rf .vercel
+        run: rm -rf .vercel apps/${{ matrix.app }}/.vercel
 
       - name: Pull Vercel environment
         working-directory: apps/${{ matrix.app }}
@@ -200,8 +199,7 @@ jobs:
         run: npm install --global vercel@latest
 
       - name: Clear local Vercel config
-        working-directory: apps/shell
-        run: rm -rf .vercel
+        run: rm -rf .vercel apps/shell/.vercel
 
       - name: Pull Vercel environment
         working-directory: apps/shell
