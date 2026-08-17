@@ -144,7 +144,7 @@ jobs:
       - name: Deploy Vercel project
         id: deploy
         run: |
-          deployment_url=$(vercel deploy apps/${{ matrix.app }}/dist $VERCEL_DEPLOY_ARGS --yes --token="$VERCEL_TOKEN")
+          deployment_url=$(vercel deploy . $VERCEL_DEPLOY_ARGS --yes --token="$VERCEL_TOKEN")
           echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
           echo "### ${{ matrix.app }} deployment" >> "$GITHUB_STEP_SUMMARY"
           echo "$deployment_url" >> "$GITHUB_STEP_SUMMARY"
@@ -257,7 +257,7 @@ jobs:
       - name: Deploy Vercel project
         id: deploy
         run: |
-          deployment_url=$(vercel deploy apps/shell/dist $VERCEL_DEPLOY_ARGS --yes --token="$VERCEL_TOKEN")
+          deployment_url=$(vercel deploy . $VERCEL_DEPLOY_ARGS --yes --token="$VERCEL_TOKEN")
           echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
           echo "### shell deployment" >> "$GITHUB_STEP_SUMMARY"
           echo "$deployment_url" >> "$GITHUB_STEP_SUMMARY"
