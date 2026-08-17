@@ -48,11 +48,12 @@ jobs:
       fail-fast: false
       matrix:
         app:
+          - shell
           - products
           - cart
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ matrix.app == 'products' && secrets.VERCEL_PRODUCTS_PROJECT_ID || secrets.VERCEL_CART_PROJECT_ID }}
+      VERCEL_PROJECT_ID: ${{ matrix.app == 'products' && secrets.VERCEL_PRODUCTS_PROJECT_ID || matrix.app == 'cart' && secrets.VERCEL_CART_PROJECT_ID || secrets.VERCEL_SHELL_PROJECT_ID }}
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VITE_SHELL_REMOTE_URL: ${{ vars.VITE_SHELL_REMOTE_URL }}
       VITE_PRODUCTS_REMOTE_URL: ${{ vars.VITE_PRODUCTS_REMOTE_URL }}
